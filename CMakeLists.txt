@@ -16,19 +16,5 @@ cmake_policy(SET CMP0003 OLD)
 set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/Binaries)
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/Binaries)
 
-function(SetVS_WorkingDir vcx_file_name)
-if (${CMAKE_GENERATOR} MATCHES "Visual Studio 14.+" OR ${CMAKE_GENERATOR} MATCHES "Visual Studio 15.+")
-#due to http://stackoverflow.com/questions/23950887/does-cmake-offer-a-method-to-set-the-working-directory-for-a-given-build-system
-file( WRITE ${vcx_file_name}
-     "<?xml version=\"1.0\" encoding=\"utf-8\"?>     \
-    <Project ToolsVersion=\"4.0\" xmlns=\"http://schemas.microsoft.com/developer/msbuild/2003\">
-    <PropertyGroup>
-        <LocalDebuggerWorkingDirectory>$(TargetDir)</LocalDebuggerWorkingDirectory>
-        <DebuggerFlavor>WindowsLocalDebugger</DebuggerFlavor>
-    </PropertyGroup>
-    </Project>")
-endif()
-endfunction()
-
 add_subdirectory(Sources)
 add_subdirectory(Samples)
