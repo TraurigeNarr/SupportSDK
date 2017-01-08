@@ -13,4 +13,8 @@ cmake_policy(SET CMP0003 OLD)
 # path settings
 #include (Sources/SupportSDK.cmake)
 
+set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/Binaries)
+set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/Binaries)
+
 add_subdirectory(Sources)
+add_subdirectory(Samples)
