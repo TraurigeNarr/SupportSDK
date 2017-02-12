@@ -10,6 +10,7 @@
 #include "GlobalObjectGetterTests.h"
 #include "TempTests.h"
 #include "MessageDispatcherTests.h"
+#include "HandlesTests.h"
 
 int main()
 {
@@ -20,5 +21,6 @@ int main()
 	StateMachineTests::Test();
 	CmdBucketTest::Test();	
 	MessageDispatcherTests::Test();
+	HandlesTests::Test();
     return 0;
 }

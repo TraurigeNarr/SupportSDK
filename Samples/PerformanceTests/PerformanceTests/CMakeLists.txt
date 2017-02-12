@@ -1,25 +1,9 @@
 project(PerformanceTests)
 
-set(SOURCES CommandBucketTests.h
-    FactoryTests.h
-    FSM_Test_HierarchicalvsTemplate.h
-    GlobalObjectGetterTests.h
-    MessageDispatcherTests.h
-    StateMachineTests.h
-    stdafx.h
-    TempTests.h
-    commandBucketTests.cpp
-    FactoryTests.cpp
-    FSM_Test_HierarchicalvsTemplate.cpp
-    GlobalObjcetGetterTests.cpp
-    MessageDispatcherTests.cpp
-    PerformanceTests.cpp
-    StateMachineTests.cpp
-    stdafx.cpp
-    TempTests.cpp
-    )
+file(GLOB HEADER_FILES "${CMAKE_CURRENT_SOURCE_DIR}/*.h")
+file(GLOB SOURCE_FILES "${CMAKE_CURRENT_SOURCE_DIR}/*.cpp")
 
-add_executable(PerformanceTests ${SOURCES})
+add_executable(PerformanceTests ${HEADER_FILES} ${SOURCE_FILES})
 target_link_libraries(PerformanceTests PRIVATE GameCore)
 target_include_directories(PerformanceTests PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/../../../Sources)
 
