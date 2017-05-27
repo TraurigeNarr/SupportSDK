@@ -252,6 +252,8 @@ namespace SDK
 			p_hd_mgr->DestroyBuffer(buffer_handle);
 			p_hd_mgr->DestroyLayout(layout_handle);
 			p_renderer->GetTextureManager()->Release(0);
+
+			p_renderer->UnbindShader();
 		}
 
 		void FontManager::Initialize()
