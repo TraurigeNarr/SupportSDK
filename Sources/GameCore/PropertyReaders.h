@@ -1,6 +1,8 @@
 #ifndef __GAMECORE_PROPERTYREADERS_H__
 #define __GAMECORE_PROPERTYREADERS_H__
 
+#include "GameCoreAPI.h"
+
 #include "PropertyReader.h"
 
 namespace SDK
@@ -10,24 +12,24 @@ namespace SDK
 	class PropretyReader <(int)ReaderType::XML>
 	{
 	public:
-		PropertyElement Parse(const std::string& i_file_name) const;
-		PropertyElement Parse(std::istream& i_stream) const;
+		GAMECORE_EXPORT PropertyElement Parse(const std::string& i_file_name) const;
+		GAMECORE_EXPORT PropertyElement Parse(std::istream& i_stream) const;
 	};
 
 	template <>
 	class PropretyReader <(int)ReaderType::SDKFormat>
 	{
 	public:
-		PropertyElement Parse(const std::string& i_file_name) const;
-		PropertyElement Parse(std::istream& i_stream) const;
+		GAMECORE_EXPORT PropertyElement Parse(const std::string& i_file_name) const;
+		GAMECORE_EXPORT PropertyElement Parse(std::istream& i_stream) const;
 	};
 
 	template <>
 	class PropretyReader <(int)ReaderType::Binary>
 	{
 	public:
-		PropertyElement Parse(const std::string& i_file_name) const;
-		PropertyElement Parse(std::istream& i_stream) const;
+		GAMECORE_EXPORT PropertyElement Parse(const std::string& i_file_name) const;
+		GAMECORE_EXPORT PropertyElement Parse(std::istream& i_stream) const;
 	};
 
 } // SDK
