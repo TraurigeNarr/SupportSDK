@@ -113,7 +113,7 @@ namespace SDK
 					Render::TextureAtlas atlas(512, 256, 1);
 					Render::Font target_font = Preprocess(atlas, face, i_settings);
 #if defined(_DEBUG)
-					SOIL_save_image("temp.bmp", SOIL_SAVE_TYPE_BMP, atlas.Width(), atlas.Height(), 1, atlas.GetDatPtr());
+					//SOIL_save_image("temp.bmp", SOIL_SAVE_TYPE_BMP, atlas.Width(), atlas.Height(), 1, atlas.GetDatPtr());
 #endif
 
 					FT_Done_Face(face);
