@@ -1,3 +1,5 @@
 project(Samples)
 
 add_subdirectory(PerformanceTests/PerformanceTests)
+add_subdirectory(RenderTesting/RenderTesting)
+add_subdirectory(UI_Testing/UI_Testing)

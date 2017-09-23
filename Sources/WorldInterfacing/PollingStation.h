@@ -57,7 +57,6 @@ namespace SDK
 				#ifdef _DEBUG
 				if (std::find_if(m_tasks.begin(), m_tasks.end(), TaskFinder(i_code)) == m_tasks.end())
 					{
-					std::_DEBUG_ERROR("[MetaPollingStation] Task is not registered.");
 					throw std::runtime_error("[MetaPollingStation] Task is not registered.");
 					}
 				#endif

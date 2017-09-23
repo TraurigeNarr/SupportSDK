@@ -6,26 +6,16 @@
 #include <GameCore/Render/IRenderer.h>
 #include <GameCore/Render/HardwareBufferManagerBase.h>
 #include <GameCore/Input/inputsystem.h>
-#include <GameCore/Render/OpenGL/GlUitlities.h>
+//#include <GameCore/Render/OpenGL/GlUitlities.h>
 #include <GameCore/Render/TextureManager.h>
 
 // for test
-#include <GL/glew.h>
-#include <GL/GL.h>
-#include <GL/GLU.h>
 #define BUFFER_OFFSET(i) ((char *)NULL + (i))
 #include <time.h>
 
 #include <Math/Matrix4.h>
 
 using namespace SDK;
-
-#pragma comment(lib, "opengl32.lib")
-#if defined(_DEBUG)
-# pragma comment(lib, "glew32d.lib")
-#else
-# pragma comment(lib, "glew32.lib")
-#endif
 
 #include <GameCore/Applications/ApplicationBase.h>
 
