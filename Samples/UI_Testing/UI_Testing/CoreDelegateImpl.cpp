@@ -6,25 +6,14 @@
 #include <GameCore/Render/IRenderer.h>
 #include <GameCore/Render/HardwareBufferManagerBase.h>
 #include <GameCore/Input/inputsystem.h>
-#include <GameCore/Render/OpenGL/GlUitlities.h>
 
 // for test
-#include <GL/glew.h>
-#include <GL/GL.h>
-#include <GL/GLU.h>
 #define BUFFER_OFFSET(i) ((char *)NULL + (i))
 #include <time.h>
 
 #include <Math/Matrix4.h>
 
 using namespace SDK;
-
-#pragma comment(lib, "opengl32.lib")
-#if defined(_DEBUG)
-# pragma comment(lib, "glew32d.lib")
-#else
-# pragma comment(lib, "glew32.lib")
-#endif
 
 #include <GameCore/Applications/ApplicationBase.h>
 
@@ -70,13 +59,13 @@ namespace Game
 	void CoreDelegateImpl::OnCreate()
 	{
 		auto p_load_manager = Core::GetGlobalObject<Resources::ResourceManager>();
-		p_load_manager->LoadResourceSet("..\\..\\..\\Resources\\ResourceSets\\ui_testing.res");
+		p_load_manager->LoadResourceSet("..\\..\\..\\Samples\\Resources\\ResourceSets\\ui_testing.res");
 
 		auto p_ui_system = Core::GetGlobalObject<UI::UIControlSystem>();
-		p_ui_system->LoadScheme("..\\..\\..\\Resources\\UI\\test.scheme");
+		p_ui_system->LoadScheme("..\\..\\..\\Samples\\Resources\\UI\\test.scheme");
 		p_ui_system->UnloadScheme("test");
 		p_ui_system->SetActiveScheme("test");
-		auto scheme_handler = p_ui_system->LoadScheme("..\\..\\..\\Resources\\UI\\TestUIProfile.scheme");				
+		auto scheme_handler = p_ui_system->LoadScheme("..\\..\\..\\Samples\\Resources\\UI\\TestUIProfile.scheme");				
 		p_ui_system->SetActiveScheme(scheme_handler);
 		auto accessor = p_ui_system->CreateControl<UI::UIButton>();
 		p_ui_system->RemoveControl(accessor.GetHandler());
@@ -85,8 +74,8 @@ namespace Game
 		auto& msg_dsp = p_ui_system->GetMessageDispatcher();
 		msg_dsp.RegisterHandler<TestHandler, UI::UIButtonEvent>(handler, &TestHandler::Handle, "exit_button");
 
-		connection = SDK::Connection(msg_dsp, handler, &TestHandler::Handle, "my_mega_button");		
-		connection.disconnect();
+		//connection = SDK::Connection(msg_dsp, handler, &TestHandler::Handle, "my_mega_button");		
+		//connection.disconnect();
 
 		Log::Info("Render", Source, "Test message");
 		Log::Info(0, Source, "{0}: {1}", "asdasd", 1);

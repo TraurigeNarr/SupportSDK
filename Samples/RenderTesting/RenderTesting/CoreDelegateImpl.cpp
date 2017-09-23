@@ -124,11 +124,11 @@ namespace Game
 		Core::GetGlobalObject<InputSystem>()->AddSubscriber(&m_input_subs);
 		Core::GetGlobalObject<InputSystem>()->AddSubscriber(&g_camera_controller);
 		auto p_load_manager = Core::GetGlobalObject<Resources::ResourceManager>();
-		p_load_manager->LoadResourceSet("..\\..\\..\\Resources\\ResourceSets\\render_testing.res");
+		p_load_manager->LoadResourceSet("..\\..\\..\\Samples\\Resources\\ResourceSets\\render_testing.res");
 
 		LoadModel();		
 		CreateMesh();
-		Core::GetGlobalObject<Render::FontManager>()->LoadFont("Arial", Render::FontSettings(), "..\\..\\..\\Resources\\Fonts\\arial.ttf");
+		Core::GetGlobalObject<Render::FontManager>()->LoadFont("Arial", Render::FontSettings(), "..\\..\\..\\Samples\\Resources\\Fonts\\arial.ttf");
 		auto& world = Core::GetApplication()->GetWorld();
 		auto& camera = world.GetCamera();
 		static SDK::Vector3 shift{ 5.f, -5.f, -50.f };
