@@ -44,16 +44,12 @@ namespace SDK
 			friend struct Resources::Serialization::LoaderImpl<Mesh>;
 
 		private:
-			// raw resources (prototypes for dynamic meshes) - not processed if they not used with MeshComponent
-			std::vector<Mesh> m_meshes;
-			std::vector<MeshHandle> m_handlers;
-			std::vector<MeshComponent> m_instances;
-			// static mesh handles
-			std::vector<MeshComponentHandle> m_component_handlers;
-
 			using MeshHandles = GenericHandleDynamicArray<MeshHandle, Mesh>;
 			MeshHandles m_dynamic_meshes;
+			MeshHandles m_raw_meshes;
 
+			using MeshInstances = GenericHandleDynamicArray<MeshComponentHandle, MeshComponent>;
+			MeshInstances m_mesh_instances;
 
 		private:
 			void LoadMesh(const PropertyElement& i_resource_element);

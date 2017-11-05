@@ -196,85 +196,40 @@ namespace SDK
 					return ProcessMesh(scene, i_info);
 				}
 
-				// TODO: need some limitations on size of loaded meshes?
 				static InternalHandle CreateNewHandle()
 				{
-					auto& handlers = Core::GetGlobalObject<Render::MeshSystem>()->m_handlers;
-
-					InternalHandle new_index{ -1, -1 };
-					for (size_t i = 0; i < handlers.size(); ++i)
-					{
-						if (handlers[i].index == -1)
-						{
-							new_index.index = i;
-							new_index.generation = handlers[i].generation;
-							handlers[i].index = i;
-							break;
-						}
-					}
-
-					if (new_index.index == -1)
-					{
-						// TODO: resize vector normally - with some strategy - not push_back
-						handlers.push_back(Render::MeshHandle());
-						const int index = handlers.size() - 1;						
-						handlers[index].generation = 0;
-						handlers[index].index = index;
-
-						new_index.index = index;
-						new_index.generation = 0;
-					}
-
-					return new_index;
+					auto handle = Core::GetGlobalObject<Render::MeshSystem>()->m_raw_meshes.CreateNew();
+					return { handle.index, handle.generation };
 				}
 
 				static void RemoveHandle(InternalHandle i_handle)
 				{
-					auto& handlers = Core::GetGlobalObject<Render::MeshSystem>()->m_handlers;
-					assert(i_handle.index < static_cast<int>(handlers.size()));
-					++handlers[i_handle.index].generation;
-					handlers[i_handle.index].index = -1;
+					Core::GetGlobalObject<Render::MeshSystem>()->m_raw_meshes.Destroy({ i_handle.index, i_handle.generation });
 				}
 
 				static void UnloadResource(InternalHandle i_handle)
 				{
 					auto p_mesh_system = Core::GetGlobalObject<Render::MeshSystem>();
-					auto& handlers = p_mesh_system->m_handlers;
-					assert(i_handle.index < static_cast<int>(handlers.size()));
-					++handlers[i_handle.index].generation;
-					handlers[i_handle.index].index = -1;
-
-					auto& meshes = p_mesh_system->m_meshes;
-					assert(i_handle.index < static_cast<int>(meshes.size()));
 					// release resources for mesh
 					auto p_mgr = Core::GetRenderer()->GetHardwareBufferMgr();
-					Render::Mesh& mesh = meshes[i_handle.index];
-					for (size_t i = 0; i < mesh.GetSubmeshNumber(); ++i)
+
+					Render::Mesh* p_mesh = p_mesh_system->m_raw_meshes.Access({ i_handle.index, i_handle.generation });
+					assert(p_mesh);
+					for (size_t i = 0; i < p_mesh->GetSubmeshNumber(); ++i)
 					{
-						const Render::Mesh::SubMesh& sub_mesh = mesh.GetSubmesh(i);
+						const Render::Mesh::SubMesh& sub_mesh = p_mesh->GetSubmesh(i);
 						p_mgr->DestroyBuffer(sub_mesh.m_vertex_buffer);
 						p_mgr->DestroyLayout(sub_mesh.m_pos_layout);
 						p_mgr->DestroyLayout(sub_mesh.m_normal_layout);
 						p_mgr->DestroyLayout(sub_mesh.m_uv_layout);
 						p_mgr->DestroyBuffer(sub_mesh.m_index_buffer);
-					}					
+					}
+					p_mesh_system->m_raw_meshes.Destroy({ i_handle.index, i_handle.generation });				
 				}
 
 				static void Register(InternalHandle i_handle, Render::Mesh i_mesh)
-				{					
-					auto& meshes = Core::GetGlobalObject<Render::MeshSystem>()->m_meshes;
-					if (static_cast<int>(meshes.size()) < i_handle.index)
-					{
-						// TODO: increase buffer strategy
-						const size_t RANGE = 1000;
-						float coeff = 2;
-						if (meshes.size() > RANGE)
-							coeff = 1.5f;
-						meshes.resize(static_cast<size_t>(meshes.size() * coeff));
-					}
-					
-
-					meshes[i_handle.index] = i_mesh;
+				{
+					Core::GetGlobalObject<Render::MeshSystem>()->m_raw_meshes.m_elements[i_handle.index].second = std::move(i_mesh);
 				}
 			};
 		
@@ -287,12 +242,6 @@ namespace SDK
 
 		MeshSystem::MeshSystem()
 		{
-			// TODO: choose initial size - provide generic strategy for allocating such types of buffers
-			const size_t INITIAL_SIZE = 10;
-			m_meshes.resize(INITIAL_SIZE);
-			m_handlers.resize(INITIAL_SIZE);
-			for (auto& handler : m_handlers)
-				handler.index = -1;
 		}
 
 		MeshSystem::~MeshSystem()
@@ -358,8 +307,8 @@ namespace SDK
 			// resource is already loaded
 			if (handle.index != -1)
 			{
-				assert(handle.index < static_cast<int>(m_handlers.size()));
-				return m_handlers[handle.index];
+				assert(handle.index < static_cast<int>(m_raw_meshes.m_elements.size()));
+				return m_raw_meshes.m_elements[handle.index].first;
 			}
 
 			return MeshHandle::InvalidHandle();
@@ -385,14 +334,13 @@ namespace SDK
 			assert(p_material_manager && "Material manager is not registered");
 			assert(p_entity_manager && "Entity manager is not registered");
 
-			for (auto& handler : m_component_handlers)
+			for (auto& mesh_instance_pair : m_mesh_instances.m_elements)
 			{
 				// reach the end of registered (valid) meshes
-				if (handler.index == -1)
+				if (mesh_instance_pair.first.index == -1)
 					break;
-
-				auto& mesh_instance = m_instances[handler.index];
-				Mesh* p_mesh = mesh_instance.IsStaticGeometry() ? &m_meshes[mesh_instance.GetHandler().index] : m_dynamic_meshes.Access(mesh_instance.GetHandler());
+				auto& mesh_instance = mesh_instance_pair.second;
+				Mesh* p_mesh = mesh_instance.IsStaticGeometry() ? m_raw_meshes.Access(mesh_instance.GetHandler()) : m_dynamic_meshes.Access(mesh_instance.GetHandler());
 				auto p_entity = p_entity_manager->GetEntity(mesh_instance.GetEntity());
 				for (size_t i = 0; i < p_mesh->GetSubmeshNumber(); ++i)
 				{
@@ -445,36 +393,12 @@ namespace SDK
 
 		MeshComponentHandle MeshSystem::CreateInstance(MeshHandle i_handle, bool i_static_geometry)
 		{
-			if (i_handle == MeshHandle::InvalidHandle())
-				return MeshComponentHandle::InvalidHandle();
-			if (i_handle.generation != m_handlers[i_handle.index].generation)
+			if (!m_raw_meshes.IsValid(i_handle))
 				return MeshComponentHandle::InvalidHandle();
 
-			// get free index
-			int new_index = -1;
-			for (size_t i = 0; i < m_component_handlers.size(); ++i)
-			{
-				if (m_component_handlers[i].index == -1)
-				{
-					new_index = static_cast<int>(i);
-					m_component_handlers[i].index = i;
-					break;
-				}
-			}
-			// create index
-			if (new_index == -1)
-			{
-				// TODO: resize vector normally - with some strategy - not push_back
-				const size_t new_count = m_component_handlers.size() + 1;
-				m_component_handlers.resize(new_count);
-				m_instances.resize(new_count);
-				new_index = new_count - 1;
-				m_component_handlers[new_index].generation = 0;
-				m_component_handlers[new_index].index = new_index;				
-			}
-			
 			MeshHandle handle_to_mesh = i_handle;
-			Mesh& mesh = m_meshes[i_handle.index];
+			Mesh* p_mesh = m_raw_meshes.Access(i_handle);
+			assert(p_mesh);
 			// copy dynamic if needed
 			if (!i_static_geometry)
 			{
@@ -482,7 +406,7 @@ namespace SDK
 				// TODO: useful functions to create static and dynamic
 				for (auto& element : m_dynamic_meshes.m_elements)
 				{
-					if (element.second.GetNameHash() == mesh.GetNameHash())
+					if (element.second.GetNameHash() == p_mesh->GetNameHash())
 					{
 						dynamic_handle = element.first;
 						break;
@@ -491,34 +415,23 @@ namespace SDK
 				// need copy
 				if (dynamic_handle == MeshHandle::InvalidHandle())
 				{
-					dynamic_handle = m_dynamic_meshes.CreateNew(mesh);
+					dynamic_handle = m_dynamic_meshes.CreateNew(*p_mesh);
 				}
 				handle_to_mesh = dynamic_handle;
 			}
 
 			//////////////////
-			// set data for MeshComponent
-			// TODO: increase use count for mesh
-			m_instances[new_index] = MeshComponent(handle_to_mesh, i_static_geometry);
-			assert(m_instances.size() == m_component_handlers.size());
-			return m_component_handlers[new_index];
+			return m_mesh_instances.CreateNew(handle_to_mesh, i_static_geometry);
 		}
 
 		MeshComponent* MeshSystem::AccessComponent(MeshComponentHandle i_handler)
 		{
-			if (m_component_handlers[i_handler.index].generation != i_handler.generation)
-			{
-				assert(false && "Generation is not identical");
-				return nullptr;
-			}
-			return &m_instances[i_handler.index];
+			return m_mesh_instances.Access(i_handler);
 		}
 
 		void MeshSystem::RemoveInstance(MeshComponentHandle i_handler)
 		{
-			// TODO: decrease use count for mesh
-			m_component_handlers[i_handler.index].index = -1;
-			++m_component_handlers[i_handler.index].generation;
+			m_mesh_instances.Destroy(i_handler);
 		}
 
 		///////////////////////////////////////////////////////////////////////////////
