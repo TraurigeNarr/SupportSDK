@@ -10,8 +10,8 @@ set_property(GLOBAL PROPERTY USE_FOLDERS ON)
 set(SDK_VERSION_MAJOR 1)
 set(SDK_VERSION_MINOR 0)
 
-cmake_policy(SET CMP0011 NEW)
-cmake_policy(SET CMP0003 OLD)
+#cmake_policy(SET CMP0011 NEW)
+#cmake_policy(SET CMP0003 OLD)
 
 option(WITH_TESTS "Build tests" ON)
 
