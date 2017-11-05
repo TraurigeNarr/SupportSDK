@@ -44,11 +44,16 @@ namespace SDK
 			friend struct Resources::Serialization::LoaderImpl<Mesh>;
 
 		private:
-			// raw resources - not processed if they not used with MeshComponent
+			// raw resources (prototypes for dynamic meshes) - not processed if they not used with MeshComponent
 			std::vector<Mesh> m_meshes;
 			std::vector<MeshHandle> m_handlers;
 			std::vector<MeshComponent> m_instances;
+			// static mesh handles
 			std::vector<MeshComponentHandle> m_component_handlers;
+
+			using MeshHandles = GenericHandleDynamicArray<MeshHandle, Mesh>;
+			MeshHandles m_dynamic_meshes;
+
 
 		private:
 			void LoadMesh(const PropertyElement& i_resource_element);
@@ -71,7 +76,7 @@ namespace SDK
 			GAMECORE_EXPORT void Unload(MeshHandle i_handler);
 			GAMECORE_EXPORT void Unload(const std::string& i_file_name) { throw std::exception("Not realized"); }
 			
-			GAMECORE_EXPORT MeshComponentHandle CreateInstance(MeshHandle i_handler);
+			GAMECORE_EXPORT MeshComponentHandle CreateInstance(MeshHandle i_handler, bool i_static_geometry);
 			GAMECORE_EXPORT MeshComponentHandle CreateInstance(const std::string& i_file_name) { throw std::exception("Not realized"); }
 
 			// TODO: Custom mesh

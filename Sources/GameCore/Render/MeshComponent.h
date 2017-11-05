@@ -22,17 +22,24 @@ namespace SDK
 			MeshHandle m_mesh;
 
 			EntityHandle m_entity;
+			
+			bool m_static_geometry = true;
 
 		public:
 			MeshComponent() {}
-			MeshComponent(MeshHandle i_handler)
+			MeshComponent(MeshHandle i_handler, bool i_static_geometry)
 				: m_mesh(i_handler)
+				, m_static_geometry(i_static_geometry)
 			{}			
 
 			MeshHandle GetHandler() const { return m_mesh; }
 
 			void SetEntity(EntityHandle i_entity) { m_entity = i_entity; }
 			EntityHandle GetEntity() const { return m_entity; }
+
+			bool IsStaticGeometry() const {
+				return m_static_geometry;
+			}
 		};
 
 	} // Render

@@ -31,6 +31,7 @@ namespace SDK
 
 		Render::BufferUsageFormat m_ver_usage;
 		Render::BufferUsageFormat m_ind_usage;
+		std::string m_name;
 		std::string m_description_path;
 	};
 
@@ -80,7 +81,7 @@ namespace SDK
 
 				static std::pair<LoadResult, Render::Mesh> ProcessMesh(const aiScene* ip_scene, MeshInformation i_info)
 				{
-					Render::Mesh result_mesh;
+					Render::Mesh result_mesh(i_info.m_name);
 					struct Vertex
 					{
 						// Position
@@ -179,7 +180,7 @@ namespace SDK
 					if (file_data.empty())
 					{
 						assert(false && "File data is empty");
-						return std::make_pair(LoadResult::Failure, Render::Mesh());
+						return std::make_pair(LoadResult::Failure, Render::Mesh(i_info.m_name));
 					}
 					// Read file via ASSIMP
 					Assimp::Importer importer;
@@ -189,7 +190,7 @@ namespace SDK
 					{
 						std::string message = importer.GetErrorString();
 						assert(false && "ASSIMP ERROR");
-						return std::make_pair(LoadResult::Failure, Render::Mesh());
+						return std::make_pair(LoadResult::Failure, Render::Mesh(i_info.m_name));
 					}
 
 					return ProcessMesh(scene, i_info);
@@ -350,7 +351,7 @@ namespace SDK
 
 		MeshHandle MeshSystem::LoadImpl(const std::string& i_name, const std::string& i_path, BufferUsageFormat i_vertices_usage, BufferUsageFormat i_indices_usage, const std::string& i_desc_path)
 		{
-			MeshInformation info = { i_vertices_usage, i_indices_usage, i_desc_path };
+			MeshInformation info = { i_vertices_usage, i_indices_usage, i_name, i_desc_path };
 			auto p_load_manager = Core::GetGlobalObject<Resources::ResourceManager>();
 			InternalHandle handle = p_load_manager->Load<Mesh>(i_name, { i_path }, info);
 
@@ -391,11 +392,11 @@ namespace SDK
 					break;
 
 				auto& mesh_instance = m_instances[handler.index];
-				auto& mesh = m_meshes[mesh_instance.GetHandler().index];
+				Mesh* p_mesh = mesh_instance.IsStaticGeometry() ? &m_meshes[mesh_instance.GetHandler().index] : m_dynamic_meshes.Access(mesh_instance.GetHandler());
 				auto p_entity = p_entity_manager->GetEntity(mesh_instance.GetEntity());
-				for (size_t i = 0; i < mesh.GetSubmeshNumber(); ++i)
+				for (size_t i = 0; i < p_mesh->GetSubmeshNumber(); ++i)
 				{
-					const Render::Mesh::SubMesh& sub_mesh = mesh.GetSubmesh(i);
+					const Render::Mesh::SubMesh& sub_mesh = p_mesh->GetSubmesh(i);
 					Commands::Transform* p_transform_cmd = nullptr;
 					if (p_entity != nullptr)
 					{
@@ -442,9 +443,11 @@ namespace SDK
 			}
 		}
 
-		MeshComponentHandle MeshSystem::CreateInstance(MeshHandle i_handle)
+		MeshComponentHandle MeshSystem::CreateInstance(MeshHandle i_handle, bool i_static_geometry)
 		{
-			if (i_handle == MeshHandle::InvalidHandle() || i_handle.generation != m_handlers[i_handle.index].generation)
+			if (i_handle == MeshHandle::InvalidHandle())
+				return MeshComponentHandle::InvalidHandle();
+			if (i_handle.generation != m_handlers[i_handle.index].generation)
 				return MeshComponentHandle::InvalidHandle();
 
 			// get free index
@@ -470,10 +473,33 @@ namespace SDK
 				m_component_handlers[new_index].index = new_index;				
 			}
 			
+			MeshHandle handle_to_mesh = i_handle;
+			Mesh& mesh = m_meshes[i_handle.index];
+			// copy dynamic if needed
+			if (!i_static_geometry)
+			{
+				MeshHandle dynamic_handle = MeshHandle::InvalidHandle();
+				// TODO: useful functions to create static and dynamic
+				for (auto& element : m_dynamic_meshes.m_elements)
+				{
+					if (element.second.GetNameHash() == mesh.GetNameHash())
+					{
+						dynamic_handle = element.first;
+						break;
+					}
+				}
+				// need copy
+				if (dynamic_handle == MeshHandle::InvalidHandle())
+				{
+					dynamic_handle = m_dynamic_meshes.CreateNew(mesh);
+				}
+				handle_to_mesh = dynamic_handle;
+			}
+
 			//////////////////
 			// set data for MeshComponent
 			// TODO: increase use count for mesh
-			m_instances[new_index] = MeshComponent(i_handle);			
+			m_instances[new_index] = MeshComponent(handle_to_mesh, i_static_geometry);
 			assert(m_instances.size() == m_component_handlers.size());
 			return m_component_handlers[new_index];
 		}

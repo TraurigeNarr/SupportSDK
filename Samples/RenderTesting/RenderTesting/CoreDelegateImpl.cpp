@@ -92,11 +92,11 @@ namespace Game
 		auto p_mesh_system = Core::GetGlobalObject<Render::MeshSystem>();
 		auto p_entity_mgr = Core::GetGlobalObject<EntityManager>();
 		auto p_transformation_sys = Core::GetGlobalObject<TransformationsSystem>();
-		for (int i = 0; i < 20; ++i)
+		for (int i = 0; i < 5; ++i)
 		{
-			for (int j = 0; j < 20; ++j)
+			for (int j = 0; j < 5; ++j)
 			{
-				auto mesh_handle = p_mesh_system->CreateInstance(loaded_mesh);
+				auto mesh_handle = p_mesh_system->CreateInstance(loaded_mesh, false);
 				auto trans_handle = p_transformation_sys->CreateInstance();
 				auto p_transform = p_transformation_sys->GetInstance(trans_handle);
 				p_transform->m_position[0] = start_pos[0] + i*10;

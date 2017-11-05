@@ -48,8 +48,14 @@ namespace SDK
 
 		private:
 			std::vector<SubMesh> m_sub_meshes;
+			size_t m_name_hash;
+			std::string m_name;
 
 		public:
+			GAMECORE_EXPORT Mesh();
+			GAMECORE_EXPORT Mesh(const std::string& i_name);
+			GAMECORE_EXPORT Mesh(const Mesh& i_other);
+
 			GAMECORE_EXPORT void AddSubmesh(
 					const std::string& i_name,
 					VertexBufferHandle i_vertices,
@@ -62,6 +68,14 @@ namespace SDK
 			const SubMesh& GetSubmesh(size_t i) const { return m_sub_meshes[i]; }
 			SubMesh& GetSubmesh(size_t i) { return m_sub_meshes[i]; }
 			bool IsValid() const { return !m_sub_meshes.empty(); }
+
+			std::string GetName() const {
+				return m_name;
+			}
+
+			size_t GetNameHash() const {
+				return m_name_hash;
+			}
 		};
 
 	} // Render
