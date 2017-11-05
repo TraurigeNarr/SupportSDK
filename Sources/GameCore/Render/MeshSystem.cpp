@@ -267,6 +267,8 @@ namespace SDK
 		{
 			if (i_format == "static")
 				return BufferUsageFormat::Static;
+			else if (i_format == "dynamic")
+				return BufferUsageFormat::Dynamic;
 			return BufferUsageFormat::Static;
 		}
 
@@ -402,31 +404,13 @@ namespace SDK
 			if (!m_raw_meshes.IsValid(i_handle))
 				return MeshComponentHandle::InvalidHandle();
 
-			MeshHandle handle_to_mesh = i_handle;
 			Mesh* p_mesh = m_raw_meshes.Access(i_handle);
-			assert(p_mesh);
-			// copy dynamic if needed
-			if (!i_static_geometry)
+			if (p_mesh == nullptr)
 			{
-				MeshHandle dynamic_handle = MeshHandle::InvalidHandle();
-				// TODO: useful functions to create static and dynamic
-				for (auto& element : m_dynamic_meshes.m_elements)
-				{
-					if (element.second.GetNameHash() == p_mesh->GetNameHash())
-					{
-						dynamic_handle = element.first;
-						break;
-					}
-				}
-				// need copy
-				if (dynamic_handle == MeshHandle::InvalidHandle())
-				{
-					dynamic_handle = m_dynamic_meshes.CreateNew(*p_mesh);
-				}
-				handle_to_mesh = dynamic_handle;
+				assert(p_mesh);
+				return MeshComponentHandle::InvalidHandle();
 			}
-
-			//////////////////
+			MeshHandle handle_to_mesh = i_static_geometry ? i_handle : m_dynamic_meshes.CreateNew(*p_mesh);
 			return m_mesh_instances.CreateNew(handle_to_mesh, i_static_geometry);
 		}
 
