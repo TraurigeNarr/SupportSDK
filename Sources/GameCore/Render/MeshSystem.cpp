@@ -341,6 +341,12 @@ namespace SDK
 					break;
 				auto& mesh_instance = mesh_instance_pair.second;
 				Mesh* p_mesh = mesh_instance.IsStaticGeometry() ? m_raw_meshes.Access(mesh_instance.GetHandler()) : m_dynamic_meshes.Access(mesh_instance.GetHandler());
+				// TODO: dump mesh
+				if (p_mesh == nullptr)
+				{
+					assert(false);
+					continue;
+				}
 				auto p_entity = p_entity_manager->GetEntity(mesh_instance.GetEntity());
 				for (size_t i = 0; i < p_mesh->GetSubmeshNumber(); ++i)
 				{
@@ -432,6 +438,14 @@ namespace SDK
 		void MeshSystem::RemoveInstance(MeshComponentHandle i_handler)
 		{
 			m_mesh_instances.Destroy(i_handler);
+		}
+
+		MeshHandle MeshSystem::AccessMesh(const std::string& i_name)
+		{
+			size_t name_hash = Utilities::hash_function(i_name);
+			auto it = std::find_if(m_raw_meshes.m_elements.begin(), m_raw_meshes.m_elements.end(), [name_hash](MeshHandles::ArrayElement& element)
+			{return element.second.GetNameHash() == name_hash; });
+			return it == m_raw_meshes.m_elements.end() ? MeshHandle::InvalidHandle() : it->first;
 		}
 
 		///////////////////////////////////////////////////////////////////////////////

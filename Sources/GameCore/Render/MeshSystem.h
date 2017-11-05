@@ -38,7 +38,7 @@ namespace SDK
 	namespace Render
 	{
 		class MeshSystem : public System
-						 , public GlobalObjectBase
+			, public GlobalObjectBase
 		{
 		private:
 			friend struct Resources::Serialization::LoaderImpl<Mesh>;
@@ -71,7 +71,7 @@ namespace SDK
 			GAMECORE_EXPORT MeshHandle Load(const std::string& i_name, const std::string& i_path, BufferUsageFormat i_vertices_usage, BufferUsageFormat i_indices_usage);
 			GAMECORE_EXPORT void Unload(MeshHandle i_handler);
 			GAMECORE_EXPORT void Unload(const std::string& i_file_name) { throw std::exception("Not realized"); }
-			
+
 			GAMECORE_EXPORT MeshComponentHandle CreateInstance(MeshHandle i_handler, bool i_static_geometry);
 			GAMECORE_EXPORT MeshComponentHandle CreateInstance(const std::string& i_file_name) { throw std::exception("Not realized"); }
 
@@ -79,16 +79,18 @@ namespace SDK
 			//MeshHandle Create(const std::string& i_name, Mesh i_mesh);
 
 			/////////////////////////////////////////////////////////
-			
+
+			GAMECORE_EXPORT MeshHandle AccessMesh(const std::string& i_name);
+
 			// if you want to change something - use this method. On one frame it is guaranteed that 
 			//	pointer will be valid if not nullptr
 			GAMECORE_EXPORT MeshComponent* AccessComponent(MeshComponentHandle i_handler);
-			GAMECORE_EXPORT void RemoveInstance(MeshComponentHandle i_handler);			
+			GAMECORE_EXPORT void RemoveInstance(MeshComponentHandle i_handler);
 
 			void Initialize();
 			void Release();
 
-		// Extension for entity manager
+			// Extension for entity manager
 		public:
 			GAMECORE_EXPORT static MeshComponent* Get(int i_in_system_id, int i_in_system_generation);
 			GAMECORE_EXPORT static void Remove(int i_in_system_id, int i_in_system_generation);
