@@ -35,7 +35,9 @@ namespace SDK
 					sub_mesh.m_pos_layout,
 					sub_mesh.m_normal_layout,
 					sub_mesh.m_uv_layout,
-					sub_mesh.m_index_buffer);
+					sub_mesh.m_index_buffer,
+					sub_mesh.m_vertices_count,
+					sub_mesh.m_triangles_count);
 				for (size_t material_i = 0; material_i < sub_mesh.m_materials.size(); ++material_i)
 				{
 					m_sub_meshes[i].m_materials.push_back(sub_mesh.m_materials[material_i]);
@@ -49,9 +51,11 @@ namespace SDK
 			VertexLayoutHandle i_pos_layout,
 			VertexLayoutHandle i_normal_layout,
 			VertexLayoutHandle i_uv_layout,
-			IndexBufferHandle i_indices)
+			IndexBufferHandle i_indices,
+			size_t i_vertices_size,
+			size_t i_triangles_size)
 		{
-			m_sub_meshes.emplace_back(i_name, i_vertices, i_pos_layout, i_normal_layout, i_uv_layout, i_indices);
+			m_sub_meshes.emplace_back(i_name, i_vertices, i_pos_layout, i_normal_layout, i_uv_layout, i_indices, i_vertices_size, i_triangles_size);
 		}
 
 	} // Render

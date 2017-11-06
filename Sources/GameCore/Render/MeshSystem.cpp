@@ -59,6 +59,7 @@ namespace SDK
 						}
 						materials.emplace_back(Utilities::hash_function(submesh_name), material_name);
 					}
+					const bool sequential = i_model_description.GetValue<bool>("sequential");
 					auto p_load_manager = Core::GetGlobalObject<Resources::ResourceManager>();
 					for (size_t i = 0; i < io_mesh.GetSubmeshNumber(); ++i)
 					{
@@ -68,6 +69,11 @@ namespace SDK
 						{
 							return mat.first == submesh_name;
 						});
+						if (sequential)
+						{
+							it = materials.begin();
+							std::advance(it, i);
+						}
 						// not found
 						if (it == materials.end())
 							continue;
@@ -105,6 +111,7 @@ namespace SDK
 							continue;
 						}
 						vertices.clear();
+						vertices.reserve(p_mesh->mNumVertices);
 						indices.clear();
 						// Walk through each of the mesh's vertices
 						for (uint i = 0; i < p_mesh->mNumVertices; i++)
@@ -142,6 +149,7 @@ namespace SDK
 						for (uint i = 0; i < p_mesh->mNumFaces; i++)
 						{
 							aiFace face = p_mesh->mFaces[i];
+							indices.reserve(indices.capacity() + face.mNumIndices);
 							// Retrieve all indices of the face and store them in the indices vector
 							for (uint j = 0; j < face.mNumIndices; j++)
 								indices.push_back(face.mIndices[j]);
@@ -161,9 +169,14 @@ namespace SDK
 						auto uv_layout = p_mgr->CreateLayout(ver_buf, 2, Render::VertexSemantic::TextureCoordinates, Render::ComponentType::Float, false, sizeof(Vertex), offsetof(Vertex, TexCoords));
 						vertex_count += vertices.size();
 						trig_count += indices.size() / 3;
-						result_mesh.AddSubmesh(p_mesh->mName.C_Str(), ver_buf, pos_layout, normals_layout, uv_layout, ind_buf);
+						result_mesh.AddSubmesh(p_mesh->mName.C_Str(), ver_buf, pos_layout, normals_layout, uv_layout, ind_buf, vertices.size(), indices.size()/3);
 					}
 					
+					for (uint i = 0; i < ip_scene->mNumAnimations; ++i)
+					{
+						const aiAnimation* p_animation = ip_scene->mAnimations[i];
+					}
+
 					if (!i_info.m_description_path.empty())
 					{
 						PropretyReader<(int)ReaderType::SDKFormat> reader;
@@ -184,7 +197,7 @@ namespace SDK
 					}
 					// Read file via ASSIMP
 					Assimp::Importer importer;
-					const aiScene* scene = importer.ReadFileFromMemory(file_data.c_str(), file_data.size(), aiProcess_Triangulate | aiProcess_FlipUVs);
+					const aiScene* scene = importer.ReadFileFromMemory(file_data.c_str(), file_data.size(), aiProcessPreset_TargetRealtime_Fast);
 					// Check for errors
 					if (!scene || scene->mFlags == AI_SCENE_FLAGS_INCOMPLETE || !scene->mRootNode) // if is Not Zero
 					{
@@ -335,7 +348,8 @@ namespace SDK
 			auto p_entity_manager = Core::GetGlobalObject<EntityManager>();
 			assert(p_material_manager && "Material manager is not registered");
 			assert(p_entity_manager && "Entity manager is not registered");
-
+			m_vertices_rendered = 0;
+			m_triangles_rendered = 0;
 			for (auto& mesh_instance_pair : m_mesh_instances.m_elements)
 			{
 				// reach the end of registered (valid) meshes
@@ -385,8 +399,9 @@ namespace SDK
 							if (entry.type != ShaderVariableType::Sampler2D)
 								p_shader_cmd->SetValue(entry.shader_var_location, entry.type, entry.container.GetDataPtr(), entry.container.size, false);
 						}
-
-						p_parent_cmd = p_material_manager->SetupShaderAndCreateCommands(*p_bucket, &p_shader_cmd->m_dynamic_uniforms[p_shader_cmd->current_value], 6 - p_shader_cmd->current_value, *p_material, p_shader_cmd);
+						size_t setuped = 0;
+						p_parent_cmd = p_material_manager->SetupShaderAndCreateCommands(*p_bucket, &p_shader_cmd->m_dynamic_uniforms[p_shader_cmd->current_value], setuped, 6 - p_shader_cmd->current_value, *p_material, p_shader_cmd);
+						p_shader_cmd->current_value += setuped;
 					}
 					else
 					{
@@ -395,6 +410,9 @@ namespace SDK
 					// Add draw command
 					Commands::Draw* p_cmd = p_bucket->Append<Commands::Draw>(p_parent_cmd);
 					p_cmd->indices = sub_mesh.m_index_buffer;
+
+					m_vertices_rendered += sub_mesh.m_vertices_count;
+					m_triangles_rendered += sub_mesh.m_triangles_count;
 				}
 			}
 		}

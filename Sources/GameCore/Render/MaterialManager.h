@@ -48,7 +48,7 @@ namespace SDK
 			GAMECORE_EXPORT const Material* AccessMaterial(MaterialHandle i_handle) const;
 			GAMECORE_EXPORT void RemoveMaterial(MaterialHandle i_handle);
 
-			void* SetupShaderAndCreateCommands(RenderCommandBucket& o_bucket, ShaderUniformValue* op_dynamic_unis, size_t i_unis_size, const Material& i_material, void* ip_shader_command) const;
+			void* SetupShaderAndCreateCommands(RenderCommandBucket& o_bucket, ShaderUniformValue* op_dynamic_unis, size_t& o_setuped_number, size_t i_unis_size, const Material& i_material, void* ip_shader_command) const;
 
 			void Initialize();
 			void Release();

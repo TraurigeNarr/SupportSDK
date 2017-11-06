@@ -281,8 +281,9 @@ namespace SDK
 			p_load_manager->Unload<Material>({ i_handle.index, i_handle.generation });			
 		}
 
-		void* MaterialManager::SetupShaderAndCreateCommands(RenderCommandBucket& o_bucket, ShaderUniformValue* op_dynamic_unis, size_t i_unis_size, const Material& i_material, void* ip_shader_command) const
+		void* MaterialManager::SetupShaderAndCreateCommands(RenderCommandBucket& o_bucket, ShaderUniformValue* op_dynamic_unis, size_t& o_setuped_number, size_t i_unis_size, const Material& i_material, void* ip_shader_command) const
 		{
+			o_setuped_number = 0;
 			// bind textures
 			void* p_parent = ip_shader_command;
 			int target = 0;
@@ -313,6 +314,7 @@ namespace SDK
 				// increase target and uni_index
 				++target;
 				++uni_index;
+				++o_setuped_number;
 				// newly created command will be parent to next
 				p_parent = p_bind_texture;
 			}

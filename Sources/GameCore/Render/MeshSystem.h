@@ -51,6 +51,9 @@ namespace SDK
 			using MeshInstances = GenericHandleDynamicArray<MeshComponentHandle, MeshComponent>;
 			MeshInstances m_mesh_instances;
 
+			size_t m_vertices_rendered = 0;
+			size_t m_triangles_rendered = 0;
+
 		private:
 			void LoadMesh(const PropertyElement& i_resource_element);
 			void LoadModel(const PropertyElement& i_resource_element);
@@ -86,6 +89,14 @@ namespace SDK
 			//	pointer will be valid if not nullptr
 			GAMECORE_EXPORT MeshComponent* AccessComponent(MeshComponentHandle i_handler);
 			GAMECORE_EXPORT void RemoveInstance(MeshComponentHandle i_handler);
+
+			size_t GetVerticesRendered() const {
+				return m_vertices_rendered;
+			}
+
+			size_t GetTrianglesRendered() const {
+				return m_triangles_rendered;
+			}
 
 			void Initialize();
 			void Release();

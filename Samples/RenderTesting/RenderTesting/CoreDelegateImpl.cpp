@@ -86,15 +86,15 @@ namespace Game
 		//E:\Git_Projects\SupportSDK\Samples\Resources\Models\Box.obj
 		//loaded_mesh = Render::g_mesh_system.Load("Resources\\Models\\Box.obj", Render::BufferUsageFormat::Static, Render::BufferUsageFormat::Static);
 		auto p_load_manager = Core::GetGlobalObject<Resources::ResourceManager>();
-		loaded_mesh = p_load_manager->GetHandleToResource<Render::Mesh>("Nanosuit");
+		loaded_mesh = p_load_manager->GetHandleToResource<Render::Mesh>("Dragon");
 		
 		const Vector3 start_pos{ -100, 0, -100 };
 		auto p_mesh_system = Core::GetGlobalObject<Render::MeshSystem>();
 		auto p_entity_mgr = Core::GetGlobalObject<EntityManager>();
 		auto p_transformation_sys = Core::GetGlobalObject<TransformationsSystem>();
-		for (int i = 0; i < 5; ++i)
+		for (int i = 0; i < 1; ++i)
 		{
-			for (int j = 0; j < 5; ++j)
+			for (int j = 0; j < 1; ++j)
 			{
 				auto mesh_handle = p_mesh_system->CreateInstance(loaded_mesh, false);
 				auto trans_handle = p_transformation_sys->CreateInstance();
@@ -200,10 +200,12 @@ namespace Game
 		auto en_font = Core::GetGlobalObject<Resources::ResourceManager>()->GetHandleToResource<Render::Font>("Arial_en");
 
 		auto p_font_mgr = Core::GetGlobalObject<Render::FontManager>();
-		p_font_mgr->Render({ x, 800 }, 1.f, message, en_font);
-		message = L"asdqwetbij[we6  ewrgasdf";
+		p_font_mgr->Render({ x, 900 }, 0.6f, message, en_font);
+		p_font_mgr->Render({ x, 865 }, 0.6f, L"Vertices: " + std::to_wstring(Core::GetGlobalObject<Render::MeshSystem>()->GetVerticesRendered()), en_font);
+		p_font_mgr->Render({ x, 830 }, 0.6f, L"Trigs: " + std::to_wstring(Core::GetGlobalObject<Render::MeshSystem>()->GetTrianglesRendered()), en_font);
+		/*message = L"asdqwetbij[we6  ewrgasdf";
 		for (int i = 0; i < 100; ++i)
-			p_font_mgr->Render({ x, y }, 1.f, message, en_font);
+			p_font_mgr->Render({ x, y }, 1.f, message, en_font);*/
 	}
 
 } // Game
