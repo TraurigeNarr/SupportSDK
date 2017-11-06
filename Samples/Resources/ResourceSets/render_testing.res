@@ -68,8 +68,18 @@ texture = {
 }
 
 texture = {
-	resource_name = "box_diffuse"
-	path = "..\..\..\Samples\Resources\Textures\Box texture.png"
+	resource_name = "dragon_bump"
+	path = "..\..\..\Samples\Resources\Textures\dragon\Dragon_Bump_Col2.jpg"
+}
+
+texture = {
+	resource_name = "dragon_normal_map"
+	path = "..\..\..\Samples\Resources\Textures\dragon\Dragon_Nor_mirror2.jpg"
+}
+
+texture = {
+	resource_name = "dragon_ground"
+	path = "..\..\..\Samples\Resources\Textures\dragon\Dragon_Bump_Col2.jpg"
 }
 
 shader_program = {
@@ -108,9 +118,16 @@ shader_program = {
 	}
 }
 
-material = {
-	resource_name = "Sample_material"
-	path = "..\..\..\Samples\Resources\Materials\sample.material"
+shader_program = {
+	resource_name = "TextureShader"
+	shader = {
+		type = "vertex"
+		path = "..\..\..\Samples\Resources\Shaders\TextureShader.vertexshader"
+	}
+	shader = {
+		type = "fragment"
+		path = "..\..\..\Samples\Resources\Shaders\TextureShader.fragmentshader"
+	}
 }
 
 material = {
@@ -143,13 +160,27 @@ material = {
 	path = "..\..\..\Samples\Resources\Materials\nanosuit\visor.material"
 }
 
+material = {
+	resource_name = "Dragon_material"
+	path = "..\..\..\Samples\Resources\Materials\dragon.material"
+}
+
 model = {
-	resource_name = "Nanosuit"
-	path = "..\..\..\Samples\Resources\Models\nanosuit\nanosuit.obj"
-	description_path = "..\..\..\Samples\Resources\Models\nanosuit\nanosuit.model"
+	resource_name = "Dragon"
+    path = "..\..\..\Samples\Resources\Models\dragon\Dragon.fbx"
+	description_path = "..\..\..\Samples\Resources\Models\dragon\dragon.model"
 	vertices_usage = "static"
 	indices_usage = "static"
 }
+
+model = {
+	path = "..\..\..\Samples\Resources\Models\nanosuit\nanosuit.obj"
+    description_path = "..\..\..\Samples\Resources\Models\nanosuit\nanosuit.model"
+	description_path = "..\..\..\Samples\Resources\Models\dragon\dragon.model"
+	vertices_usage = "static"
+	indices_usage = "static"
+}
+
 
 font = {
 	resource_name = "Arial_en"

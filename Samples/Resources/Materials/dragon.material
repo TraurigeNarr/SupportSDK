@@ -1,0 +1,10 @@
+Material = {
+	Shader = {
+		name = "TextureShader"
+		text = {
+			shader_semantic = "uniform"
+			type = "sampler2D"
+			value = "dragon_ground"
+		}
+	}
+}

@@ -1,0 +1,15 @@
+sequential = true
+mesh = {
+	name = "Eyes"
+	material = "Dragon_material"
+}
+
+mesh = {
+	name = "Wings"
+	material = "Dragon_material"
+}
+
+mesh = {
+	name = "Body"
+	material = "Dragon_material"
+}
