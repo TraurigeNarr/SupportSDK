@@ -23,14 +23,20 @@ namespace SDK
 
 	public:
 		Vector3 m_position;
+		Matrix3 m_rotation;
 		// rotation
 		// scale
 		// http://bitsquid.blogspot.com/2012/07/matrices-rotation-scale-and-drifting.html
 
-		Transform() {}
+		Transform()
+		{
+			m_rotation.Identity();
+		}
 		Transform(Vector3 i_position)
 			: m_position(i_position)
-		{}
+		{
+			m_rotation.Identity();
+		}
 
 		// Extension for EntityManager
 		EntityHandle m_entity;

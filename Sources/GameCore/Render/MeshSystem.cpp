@@ -25,6 +25,213 @@
 
 namespace SDK
 {
+	namespace Render
+	{
+		class AnimationSystem;
+
+		struct Weight
+		{
+			size_t vertex_index;
+			float weight;
+		};
+		struct Bone
+		{
+			std::string name;
+			size_t name_hash;
+			Matrix4f original_transform;
+			std::vector<Weight> weights;
+
+			Bone(const std::string& i_name, Matrix4f&& i_original_transform)
+				: name(i_name)
+				, name_hash(Utilities::hash_function(i_name))
+				, original_transform(std::move(i_original_transform))
+			{}
+		};
+		
+		class Skeleton
+		{
+		private:
+			using Bones = std::vector<Bone>;
+			std::vector<Bones> m_bones;
+
+			MeshHandle m_mesh;
+
+		public:
+			ENTITY_DEFINITION(AnimationSystem, "Skeleton")
+
+			Skeleton() {}
+			Skeleton(const Skeleton& i_other)
+			{
+				std::copy(i_other.m_bones.begin(), i_other.m_bones.end(), std::back_inserter(m_bones));
+				m_mesh = i_other.m_mesh;
+			}
+			~Skeleton() {}
+
+			std::vector<Bones>& GetBones() {
+				return m_bones;
+			}
+
+			void SetMesh(MeshHandle i_mesh) {
+				m_mesh = i_mesh;
+			}
+
+			MeshHandle GetMesh() {
+				return m_mesh;
+			}
+		};
+
+		template <typename _Key>
+		struct AnimationKey
+		{
+			_Key value;
+			float time = 0.0f;
+
+			AnimationKey(const _Key& io_value, float i_time)
+				: value(io_value)
+				, time(i_time)
+			{
+			}
+		};
+
+		using Vector3Key = AnimationKey<Vector3>;
+		using QuatKey = AnimationKey<QuaternionF>;
+
+		class AnimationChannel
+		{
+		public:
+			std::string m_affected_node_name;
+			size_t m_name_hash;
+
+			std::vector<Vector3Key> m_position_keys;
+			std::vector<Vector3Key> m_scaling_keys;
+			std::vector<QuatKey> m_rotation_keys;
+
+			AnimationChannel(const std::string& i_name)
+				: m_affected_node_name(i_name)
+				, m_name_hash(Utilities::hash_function(i_name))
+			{
+			}
+		};
+
+		class Animation
+		{
+		public:
+			real m_duration = 0.0f;
+			real m_ticks_per_second = 0.0f;
+			std::string m_name;
+			size_t m_name_hash;
+
+			std::vector<AnimationChannel> m_channels;
+
+			bool m_active = false;
+
+			Animation(const std::string& i_name, real i_duration, real i_ticks_per_sec)
+				: m_name(i_name)
+				, m_name_hash(Utilities::hash_function(i_name))
+				, m_duration(i_duration)
+				, m_ticks_per_second(i_ticks_per_sec)
+			{
+			}
+		};
+
+		class Animator
+		{
+		public:
+			ENTITY_DEFINITION(AnimationSystem, "Animator")
+
+		public:
+			std::vector<Animation> m_animations;
+
+			SkeletonHandle m_skeleton;
+			MeshHandle m_mesh;
+		};
+
+		class AnimationSystem : public System
+			, public GlobalObjectBase
+		{
+		private:
+			using Skeletons = GenericHandleDynamicArray<SkeletonHandle, Skeleton>;
+			Skeletons m_skeletons;
+
+			using Animators = GenericHandleDynamicArray<AnimatorHandle, Animator>;
+			Animators m_animators;
+
+		public:
+			// System
+			virtual void Update(float i_elapsed_time) override;
+
+			virtual bool Requires(Action i_aciton) const { return i_aciton == Action::Update; }
+
+			std::pair<SkeletonHandle, Skeleton*> Create() {
+				SkeletonHandle handle = m_skeletons.CreateNew();
+				return { handle, m_skeletons.Access(handle) };
+			}
+
+			std::pair<SkeletonHandle, Skeleton*> CreateCopy(SkeletonHandle i_handle, MeshHandle i_mesh) {
+				Skeleton* p_prototype = m_skeletons.Access(i_handle);
+				SkeletonHandle handle = m_skeletons.CreateNew(*p_prototype);
+				Skeleton* p_new = m_skeletons.Access(handle);
+				p_new->SetMesh(i_mesh);
+				return { handle, p_new };
+			}
+
+			Skeleton* Access(SkeletonHandle i_handle) {
+				return m_skeletons.Access(i_handle);
+			}
+			void Remove(SkeletonHandle i_handle) {
+				m_skeletons.Destroy(i_handle);
+			}
+
+			std::pair<AnimatorHandle, Animator*> CreateAnimator() {
+				AnimatorHandle handle = m_animators.CreateNew();
+				return { handle, m_animators.Access(handle) };
+			}
+
+			std::pair<AnimatorHandle, Animator*> CreateCopy(AnimatorHandle i_handle, MeshHandle i_mesh) {
+				Animator* p_prototype = m_animators.Access(i_handle);
+				AnimatorHandle handle = m_animators.CreateNew(*p_prototype);
+				Animator* p_new = m_animators.Access(handle);
+				p_new->m_mesh = i_mesh;
+				return { handle, p_new };
+			}
+
+			Animator* Access(AnimatorHandle i_handle) {
+				return m_animators.Access(i_handle);
+			}
+			void Remove(AnimatorHandle i_handle) {
+				m_animators.Destroy(i_handle);
+			}
+
+			// Extension for entity manager
+		public:
+			GAMECORE_EXPORT static Skeleton* Get(int i_in_system_id, int i_in_system_generation);
+			GAMECORE_EXPORT static void Remove(int i_in_system_id, int i_in_system_generation);
+		};
+
+		void AnimationSystem::Update(float i_elaped_time)
+		{
+
+		}
+
+
+		///////////////////////////////////////////////////////////////////////////////
+		// Extension for EntityManager
+
+		Skeleton* AnimationSystem::Get(int i_in_system_id, int i_in_system_generation)
+		{
+			return Core::GetGlobalObject<Render::AnimationSystem>()->Access(SkeletonHandle{ i_in_system_id, i_in_system_generation });
+		}
+
+		void AnimationSystem::Remove(int i_in_system_id, int i_in_system_generation)
+		{
+			Core::GetGlobalObject<Render::AnimationSystem>()->Remove(SkeletonHandle{ i_in_system_id, i_in_system_generation });
+		}
+
+	}
+}
+
+namespace SDK
+{
 	struct MeshInformation
 	{
 		typedef Render::Mesh ResultType;
@@ -40,6 +247,80 @@ namespace SDK
 		namespace Serialization
 		{
 			
+			void ProcessSkeleton(Render::Skeleton& o_skeleton, const aiMesh& i_mesh, size_t i_submesh_index)
+			{
+				auto& submesh_bones = o_skeleton.GetBones();
+				if (submesh_bones.size() <= i_submesh_index)
+				{
+					submesh_bones.resize(i_submesh_index);
+				}
+				auto& bones = submesh_bones[i_submesh_index];
+				bones.reserve(i_mesh.mNumBones);
+				for (size_t i = 0; i < i_mesh.mNumBones; ++i)
+				{
+					aiBone* p_aiBone = i_mesh.mBones[i];
+					Render::Bone bone(p_aiBone->mName.C_Str(), {
+						p_aiBone->mOffsetMatrix.a1, p_aiBone->mOffsetMatrix.a2, p_aiBone->mOffsetMatrix.a3, p_aiBone->mOffsetMatrix.a4,
+						p_aiBone->mOffsetMatrix.b1, p_aiBone->mOffsetMatrix.b2, p_aiBone->mOffsetMatrix.b3, p_aiBone->mOffsetMatrix.b4,
+						p_aiBone->mOffsetMatrix.c1, p_aiBone->mOffsetMatrix.c2, p_aiBone->mOffsetMatrix.c3, p_aiBone->mOffsetMatrix.c4,
+						p_aiBone->mOffsetMatrix.d1, p_aiBone->mOffsetMatrix.d2, p_aiBone->mOffsetMatrix.d3, p_aiBone->mOffsetMatrix.d4,
+					});
+					bone.weights.reserve(p_aiBone->mNumWeights);
+					for (size_t weight_idx = 0; weight_idx  < p_aiBone->mNumWeights; ++weight_idx)
+					{
+						Render::Weight w;
+						w.vertex_index = p_aiBone->mWeights[weight_idx].mVertexId;
+						w.weight = p_aiBone->mWeights[weight_idx].mWeight;
+						bone.weights.emplace_back(w);
+					}
+					bones.push_back(bone);
+				}
+			}
+		
+			Render::AnimatorHandle ProcessAnimations(const aiScene& i_scene)
+			{
+				using namespace Render;
+				if (!i_scene.HasAnimations())
+					return Render::AnimatorHandle::InvalidHandle();
+				std::pair<AnimatorHandle, Animator*> anim_pair = Core::GetGlobalObject<AnimationSystem>()->CreateAnimator();
+				Animator& animator = *anim_pair.second;
+				animator.m_animations.reserve(i_scene.mNumAnimations);
+				for (size_t i = 0; i < i_scene.mNumAnimations; ++i)
+				{
+					const aiAnimation* p_anim = i_scene.mAnimations[i];
+					Animation anim(p_anim->mName.C_Str(), p_anim->mDuration, p_anim->mTicksPerSecond);
+					anim.m_channels.reserve(p_anim->mNumChannels);
+					for (size_t channel_idx = 0; channel_idx < p_anim->mNumChannels; ++channel_idx)
+					{
+						const aiNodeAnim* p_channel = p_anim->mChannels[channel_idx];
+						AnimationChannel channel(p_channel->mNodeName.C_Str());
+						channel.m_position_keys.reserve(p_channel->mNumPositionKeys);
+						for (size_t pos_idx = 0; pos_idx < p_channel->mNumPositionKeys; ++pos_idx)
+						{
+							const aiVectorKey& pos = p_channel->mPositionKeys[pos_idx];
+							channel.m_position_keys.emplace_back(Vector3{ pos.mValue.x, pos.mValue.y, pos.mValue.z }, pos.mTime);
+						}
+						channel.m_rotation_keys.reserve(p_channel->mNumRotationKeys);
+						for (size_t pos_idx = 0; pos_idx < p_channel->mNumRotationKeys; ++pos_idx)
+						{
+							const aiQuatKey& rot = p_channel->mRotationKeys[pos_idx];
+							channel.m_rotation_keys.emplace_back(QuaternionF{ rot.mValue.x, rot.mValue.y, rot.mValue.z, rot.mValue.w }, rot.mTime);
+						}
+						channel.m_scaling_keys.reserve(p_channel->mNumScalingKeys);
+						for (size_t pos_idx = 0; pos_idx < p_channel->mNumScalingKeys; ++pos_idx)
+						{
+							const aiVectorKey& scale = p_channel->mScalingKeys[pos_idx];
+							channel.m_scaling_keys.emplace_back(Vector3{ scale.mValue.x, scale.mValue.y, scale.mValue.z }, scale.mTime);
+						}
+						
+						anim.m_channels.push_back(std::move(channel));
+					}
+
+					animator.m_animations.push_back(std::move(anim));
+				}
+				return anim_pair.first;
+			}
+
 			template <>
 			struct LoaderImpl < Render::Mesh >
 			{
@@ -87,24 +368,28 @@ namespace SDK
 
 				static std::pair<LoadResult, Render::Mesh> ProcessMesh(const aiScene* ip_scene, MeshInformation i_info)
 				{
+					auto g_anim_sys = Core::GetGlobalObject<Render::AnimationSystem>();
 					Render::Mesh result_mesh(i_info.m_name);
-					struct Vertex
+
+					const bool has_skeleton = ip_scene->HasAnimations();
+					std::pair<Render::SkeletonHandle, Render::Skeleton*> skeleton_pair{ Render::SkeletonHandle::InvalidHandle(), nullptr };
+					if (has_skeleton)
 					{
-						// Position
-						Vector3 Position;
-						// Normal
-						Vector3 Normal;
-						// TexCoords
-						Vector2 TexCoords;
-					};
-					std::vector<Vertex> vertices;
+						skeleton_pair = g_anim_sys->Create();
+						result_mesh.SetSkeleton(skeleton_pair.first);
+						skeleton_pair.second->GetBones().resize(ip_scene->mNumMeshes);
+					}
+					std::vector<Render::Vertex> vertices;
 					std::vector<int> indices;
 					auto p_mgr = Core::GetRenderer()->GetHardwareBufferMgr();
+					
 					volatile int vertex_count = 0;
 					volatile int trig_count = 0;
 					for (uint im = 0; im < ip_scene->mNumMeshes; ++im)
 					{
 						const aiMesh* p_mesh = ip_scene->mMeshes[im];
+						p_mesh->mBones[0]->mName;
+						p_mesh->mBones[0]->mWeights[0].mVertexId;
 						if (!p_mesh->HasPositions())
 						{
 							assert(false && "Without positions");
@@ -116,7 +401,7 @@ namespace SDK
 						// Walk through each of the mesh's vertices
 						for (uint i = 0; i < p_mesh->mNumVertices; i++)
 						{
-							Vertex vertex;
+							Render::Vertex vertex;
 							Vector3 vector; // We declare a placeholder vector since assimp uses its own vector class that doesn't directly convert to glm's vec3 class so we transfer the data to this placeholder glm::vec3 first.
 							// Positions
 							vector[0] = p_mesh->mVertices[i].x;
@@ -155,7 +440,10 @@ namespace SDK
 								indices.push_back(face.mIndices[j]);
 						}
 						
-						auto ver_buf = p_mgr->CreateHardwareBuffer(vertices.size()*sizeof(Vertex), i_info.m_ver_usage, &vertices[0]);
+						if (has_skeleton)
+							ProcessSkeleton(*skeleton_pair.second, *p_mesh, im);
+
+						auto ver_buf = p_mgr->CreateHardwareBuffer(vertices.size()*sizeof(Render::Vertex), i_info.m_ver_usage, &vertices[0]);
 						Render::HardwareIndexBuffer::IndexType ind_type = Render::HardwareIndexBuffer::IndexType::Int;
 						/*
 						TODO: correct determination of vertex types
@@ -164,18 +452,17 @@ namespace SDK
 						else if(indices.size() < 255)
 						ind_type = HardwareIndexBuffer::IndexType::Byte;*/
 						auto ind_buf = p_mgr->CreateIndexBuffer(ind_type, indices.size(), i_info.m_ind_usage, Render::PrimitiveType::Triangles, &indices[0]);
-						auto pos_layout = p_mgr->CreateLayout(ver_buf, 3, Render::VertexSemantic::Position, Render::ComponentType::Float, false, sizeof(Vertex), 0);
-						auto normals_layout = p_mgr->CreateLayout(ver_buf, 3, Render::VertexSemantic::Normal, Render::ComponentType::Float, false, sizeof(Vertex), offsetof(Vertex, Normal));
-						auto uv_layout = p_mgr->CreateLayout(ver_buf, 2, Render::VertexSemantic::TextureCoordinates, Render::ComponentType::Float, false, sizeof(Vertex), offsetof(Vertex, TexCoords));
+						auto pos_layout = p_mgr->CreateLayout(ver_buf, 3, Render::VertexSemantic::Position, Render::ComponentType::Float, false, sizeof(Render::Vertex), 0);
+						auto normals_layout = p_mgr->CreateLayout(ver_buf, 3, Render::VertexSemantic::Normal, Render::ComponentType::Float, false, sizeof(Render::Vertex), offsetof(Render::Vertex, Normal));
+						auto uv_layout = p_mgr->CreateLayout(ver_buf, 2, Render::VertexSemantic::TextureCoordinates, Render::ComponentType::Float, false, sizeof(Render::Vertex), offsetof(Render::Vertex, TexCoords));
 						vertex_count += vertices.size();
 						trig_count += indices.size() / 3;
 						result_mesh.AddSubmesh(p_mesh->mName.C_Str(), ver_buf, pos_layout, normals_layout, uv_layout, ind_buf, vertices.size(), indices.size()/3);
+						std::copy(vertices.begin(), vertices.end(), std::back_inserter(result_mesh.GetSubmesh(im).vertices));
 					}
-					
-					for (uint i = 0; i < ip_scene->mNumAnimations; ++i)
-					{
-						const aiAnimation* p_animation = ip_scene->mAnimations[i];
-					}
+
+					Render::AnimatorHandle animator_handle = ProcessAnimations(*ip_scene);
+					result_mesh.SetAnimator(animator_handle);
 
 					if (!i_info.m_description_path.empty())
 					{
@@ -255,11 +542,13 @@ namespace SDK
 
 		MeshSystem::MeshSystem()
 		{
+			// TODO: remove this dirty hack
+			Core::GetGlobalObjectStorage()->AddGlobalObject<Render::AnimationSystem>();
 		}
 
 		MeshSystem::~MeshSystem()
 		{
-
+			Core::GetGlobalObjectStorage()->RemoveGlobalObject<Render::AnimationSystem>();
 		}
 
 		void MeshSystem::Initialize()
@@ -322,6 +611,12 @@ namespace SDK
 			// resource is already loaded
 			if (handle.index != -1)
 			{
+				SkeletonHandle skeleton = m_raw_meshes.Access({ handle.index, handle.generation })->GetSkeleton();
+				AnimatorHandle animator = m_raw_meshes.Access({ handle.index, handle.generation })->GetAnimator();
+				if (Skeleton* p_skeleton = Core::GetGlobalObject<AnimationSystem>()->Access(skeleton))
+					p_skeleton->SetMesh(MeshHandle{ handle.index, handle.generation });
+				if (Animator* p_animator = Core::GetGlobalObject<AnimationSystem>()->Access(animator))
+					p_animator->m_mesh = MeshHandle{ handle.index, handle.generation };
 				assert(handle.index < static_cast<int>(m_raw_meshes.m_elements.size()));
 				return m_raw_meshes.m_elements[handle.index].first;
 			}
@@ -379,6 +674,7 @@ namespace SDK
 						}
 						p_transform_cmd = p_bucket->Create<Commands::Transform>();
 						p_transform_cmd->Translate(p_transform->m_position);
+						p_transform_cmd->Rotate(p_transform->m_rotation);
 					}
 
 					// TODO: need dynamic here and not static :`(
@@ -407,8 +703,13 @@ namespace SDK
 					{
 						// TODO: dump material
 					}
+
+					Commands::SetSubdata* p_set_subdata = p_bucket->Append<Commands::SetSubdata>(p_parent_cmd);
+					// TODO: offset = 0 -> need one blob of binary data and SubMesh::offset
+					p_set_subdata->Set((void*)&sub_mesh.vertices[0], sub_mesh.vertices.size(), 0, sub_mesh.m_vertex_buffer);
+					
 					// Add draw command
-					Commands::Draw* p_cmd = p_bucket->Append<Commands::Draw>(p_parent_cmd);
+					Commands::Draw* p_cmd = p_bucket->Append<Commands::Draw>(p_set_subdata);
 					p_cmd->indices = sub_mesh.m_index_buffer;
 
 					m_vertices_rendered += sub_mesh.m_vertices_count;

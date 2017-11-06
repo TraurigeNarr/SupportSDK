@@ -169,11 +169,12 @@ model = {
 	resource_name = "Dragon"
     path = "..\..\..\Samples\Resources\Models\dragon\Dragon.fbx"
 	description_path = "..\..\..\Samples\Resources\Models\dragon\dragon.model"
-	vertices_usage = "static"
+	vertices_usage = "dynamic"
 	indices_usage = "static"
 }
 
 model = {
+	resource_name = "Nanosuit"
 	path = "..\..\..\Samples\Resources\Models\nanosuit\nanosuit.obj"
     description_path = "..\..\..\Samples\Resources\Models\nanosuit\nanosuit.model"
 	description_path = "..\..\..\Samples\Resources\Models\dragon\dragon.model"

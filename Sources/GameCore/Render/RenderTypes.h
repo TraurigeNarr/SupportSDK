@@ -160,7 +160,12 @@ namespace SDK
 		// Textures
 		struct TextureHandleTag {};
 		typedef GenericHandle<int, 12, 20, TextureHandleTag> TextureHandle;
-
+		// Skeleton
+		struct SkeletonTag {};
+		typedef GenericHandle<int, 12, 20, SkeletonTag> SkeletonHandle;
+		// Animator
+		struct AnimatorTag {};
+		typedef GenericHandle<int, 12, 20, AnimatorTag> AnimatorHandle;
 
 #define IMPLEMENT_COMMAND_IMPL(ProcessorFunc, CompletionFunc) \
 		static constexpr CommandExecutor EXECUTOR_FUNCTION = &ProcessorFunc; \

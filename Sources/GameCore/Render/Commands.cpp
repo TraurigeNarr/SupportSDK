@@ -10,13 +10,32 @@
 #include "Render/ShaderSystem.h"
 #include "Render/LightsController.h"
 #include "Render/TextureManager.h"
-
+#include "Render/HardwareBufferManagerBase.h"
 namespace SDK
 {
 	namespace Render
 	{
 		namespace Commands
 		{
+
+			///////////////////////////////////////////////////////////////////////////
+			// Draw
+
+			void SetSubdata::SetDefaultValues()
+			{
+				data = nullptr;
+				data_offset = 0;
+				data_size = 0;
+				vertices = VertexBufferHandle::InvalidHandle();
+			}
+
+			void SetSubdata::Setup(const void* ip_data)
+			{
+				const SetSubdata* cmd = reinterpret_cast<const SetSubdata*>(ip_data);
+				auto mgr = Core::GetRenderer()->GetHardwareBufferMgr();
+				mgr->SetSubdata(cmd->vertices, cmd->data, cmd->data_offset, cmd->data_size);
+			}
+
 			///////////////////////////////////////////////////////////////////////////
 			// Draw
 

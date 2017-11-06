@@ -42,6 +42,10 @@ namespace SDK
 				{
 					m_sub_meshes[i].m_materials.push_back(sub_mesh.m_materials[material_i]);
 				}
+				for (size_t vertex_i = 0; vertex_i < sub_mesh.vertices.size(); ++vertex_i)
+				{
+					m_sub_meshes[i].vertices.push_back(sub_mesh.vertices[vertex_i]);
+				}
 			}
 		}
 

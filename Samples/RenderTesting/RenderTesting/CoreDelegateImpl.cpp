@@ -92,24 +92,19 @@ namespace Game
 		auto p_mesh_system = Core::GetGlobalObject<Render::MeshSystem>();
 		auto p_entity_mgr = Core::GetGlobalObject<EntityManager>();
 		auto p_transformation_sys = Core::GetGlobalObject<TransformationsSystem>();
-		for (int i = 0; i < 1; ++i)
-		{
-			for (int j = 0; j < 1; ++j)
-			{
-				auto mesh_handle = p_mesh_system->CreateInstance(loaded_mesh, false);
-				auto trans_handle = p_transformation_sys->CreateInstance();
-				auto p_transform = p_transformation_sys->GetInstance(trans_handle);
-				p_transform->m_position[0] = start_pos[0] + i*10;
-				p_transform->m_position[2] = start_pos[2] + j*10;
+		auto mesh_handle = p_mesh_system->CreateInstance(loaded_mesh, false);
+		auto trans_handle = p_transformation_sys->CreateInstance();
+		auto p_transform = p_transformation_sys->GetInstance(trans_handle);
+		p_transform->m_position = { 0, 0, 0 };
+		p_transform->m_rotation = {
+			1, 0, 0,
+			0, 0, 1,
+			0, -1, 0
+		};
 
-				entity_handle = p_entity_mgr->CreateEntity();
-				p_entity_mgr->AddComponent<Render::MeshComponent>(entity_handle, mesh_handle);
-				p_entity_mgr->AddComponent<Transform>(entity_handle, trans_handle);
-
-				// test getting of entity and component
-				auto entity = p_entity_mgr->GetEntity(entity_handle);
-			}
-		}
+		entity_handle = p_entity_mgr->CreateEntity();
+		p_entity_mgr->AddComponent<Render::MeshComponent>(entity_handle, mesh_handle);
+		p_entity_mgr->AddComponent<Transform>(entity_handle, trans_handle);
 	}
 
 	void CoreDelegateImpl::CreateMesh()

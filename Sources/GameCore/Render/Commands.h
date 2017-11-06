@@ -10,6 +10,25 @@ namespace SDK
 	{
 		namespace Commands
 		{
+			struct SetSubdata
+			{
+				IMPLEMENT_COMMAND_EXPORT(Setup);
+
+				void* data;
+				size_t data_size;
+				size_t data_offset;
+				VertexBufferHandle vertices;
+
+				void Set(void* p_data, size_t i_data_size, size_t i_data_offset, VertexBufferHandle i_handle)
+				{
+					data = p_data;
+					data_size = i_data_size;
+					data_offset = i_data_offset;
+					vertices = i_handle;
+				}
+			};
+			static_assert(std::is_pod<SetSubdata>::value == true, "SetSubdata must be a POD.");
+
 			struct Draw
 			{
 				IMPLEMENT_COMMAND_EXPORT(DrawFunction);

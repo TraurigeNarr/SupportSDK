@@ -13,6 +13,16 @@ namespace SDK
 	{
 		class MeshSystem;
 		
+		struct Vertex
+		{
+			// Position
+			Vector3 Position;
+			// Normal
+			Vector3 Normal;
+			// TexCoords
+			Vector2 TexCoords;
+		};
+
 		class Mesh
 		{
 		public:
@@ -31,6 +41,8 @@ namespace SDK
 
 				size_t m_vertices_count;
 				size_t m_triangles_count;
+
+				std::vector<Vertex> vertices;
 
 				SubMesh(
 					const std::string& i_name,
@@ -54,6 +66,8 @@ namespace SDK
 			};
 
 		private:
+			SkeletonHandle m_skeleton = SkeletonHandle::InvalidHandle();
+			AnimatorHandle m_animator = AnimatorHandle::InvalidHandle();
 			std::vector<SubMesh> m_sub_meshes;
 			size_t m_name_hash;
 			std::string m_name;
@@ -84,6 +98,22 @@ namespace SDK
 
 			size_t GetNameHash() const {
 				return m_name_hash;
+			}
+
+			void SetSkeleton(SkeletonHandle i_skeleton) {
+				m_skeleton = i_skeleton;
+			}
+
+			SkeletonHandle GetSkeleton() const {
+				return m_skeleton;
+			}
+
+			void SetAnimator(AnimatorHandle i_skeleton) {
+				m_animator = i_skeleton;
+			}
+
+			AnimatorHandle GetAnimator() const {
+				return m_animator;
 			}
 		};
 

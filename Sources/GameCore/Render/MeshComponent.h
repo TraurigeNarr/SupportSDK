@@ -22,7 +22,7 @@ namespace SDK
 			MeshHandle m_mesh;
 
 			EntityHandle m_entity;
-			
+
 			bool m_static_geometry = true;
 
 		public:
